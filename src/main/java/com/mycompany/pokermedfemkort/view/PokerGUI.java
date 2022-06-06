@@ -2,19 +2,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 package com.mycompany.pokermedfemkort.view;
 
 import com.mycompany.pokermedfemkort.model.Card;
 import com.mycompany.pokermedfemkort.model.PokerGame;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import com.mycompany.pokermedfemkort.model.player.PokerPlayer;
+import javax.swing.SwingConstants;
 
 /**
  * @author erikr
@@ -25,20 +31,22 @@ public class PokerGUI extends javax.swing.JFrame {
     private static final String OPPONENTS_SETTING = "Anzahl Gegner: ";
     private static final String DIFFICULTY_SETTING = "Schwierigkeitsstufe: ";
     private static final String NEWLINE = System.getProperty("line.separator");
+    private String fontName = "Tahoma";
+    private int fontStyle = Font.PLAIN;
+    private int fontSize = 18;
 
     /**
      * Creates new form PokerGUI
      */
     public PokerGUI() {
         initComponents();
+        closeFontSettings();
     }
 
     public void writeNames(List<PokerPlayer> players) {
-        StringBuilder names = new StringBuilder();
-        for (PokerPlayer player : players) {
-            names.append(player.getName()).append(NEWLINE);
+        for (int i = 0; i < players.size(); i++) {
+            nameLabels.get(i).setText(players.get(i).getName());
         }
-        nameTextPane.setText(names.toString());
     }
 
     public void preparePlayCard(List<Card> cards, boolean[] enabled) {
@@ -68,16 +76,22 @@ public class PokerGUI extends javax.swing.JFrame {
     }
 
     public void updatePlayedCards() {
-        StringBuilder playedCardsString = new StringBuilder();
         List<PokerPlayer> players = game.getPlayers();
-        for (PokerPlayer player : players) {
+        for (int i = 0; i < players.size(); i++) {
+            PokerPlayer player = players.get(i);
             List<Card> playedCards = player.getPlayedCards();
-            for (Card card : playedCards) {
-                playedCardsString.append(card.getRepresentation()).append("\t");
+            for (int j = 0; j < PokerGame.CARD_HAND_SIZE; j++) {
+                var label = playedCardsLabels.get(i)[j];
+                if (j < playedCards.size()) {
+                    label.setVisible(true);
+                    Card card = playedCards.get(j);
+                    label.setText(card.getRepresentation());
+                    label.setForeground(card.getSuit().getColor());
+                } else {
+                    label.setVisible(false);
+                }
             }
-            playedCardsString.append(NEWLINE);
         }
-        playedCardsTextPane.setText(playedCardsString.toString());
     }
 
     public void prepareSwapCards(List<Card> hand) {
@@ -94,33 +108,32 @@ public class PokerGUI extends javax.swing.JFrame {
     }
 
     public void showScoreboardChanges(PokerPlayer combinationWinner, int combinationPoints,
-                                      PokerPlayer lastTrickWinner) {
+            PokerPlayer lastTrickWinner) {
         var players = game.getPlayers();
         var scoreboard = game.getScoreBoard();
-        StringBuilder scoreString = new StringBuilder();
-        players.forEach(player -> {
+        for (int i = 0; i < players.size(); i++) {
+            PokerPlayer player = players.get(i);
             int currentScore = scoreboard.getScoreOfPlayer(player);
+            var scoreString = new StringBuilder();
             scoreString.append(currentScore);
             if (combinationWinner == player) {
                 if (lastTrickWinner == player) {
                     scoreString.append(SCORE_CHANGE_PLUS)
-                        .append(combinationPoints)
-                        .append(SCORE_CHANGE_PLUS)
-                        .append(PokerGame.POINTS_FOR_LAST_TRICK)
-                        .append(SCORE_CHANGE_EQUALS)
-                        .append(currentScore + combinationPoints + PokerGame.POINTS_FOR_LAST_TRICK);
+                            .append(combinationPoints)
+                            .append(SCORE_CHANGE_PLUS)
+                            .append(PokerGame.POINTS_FOR_LAST_TRICK)
+                            .append(SCORE_CHANGE_EQUALS)
+                            .append(currentScore + combinationPoints + PokerGame.POINTS_FOR_LAST_TRICK);
                 } else {
                     scoreString.append(SCORE_CHANGE_PLUS).append(combinationPoints)
-                        .append(SCORE_CHANGE_EQUALS).append(currentScore + combinationPoints);
+                            .append(SCORE_CHANGE_EQUALS).append(currentScore + combinationPoints);
                 }
             } else if (lastTrickWinner == player) {
                 scoreString.append(SCORE_CHANGE_PLUS).append(PokerGame.POINTS_FOR_LAST_TRICK)
-                    .append(SCORE_CHANGE_EQUALS).append(currentScore + PokerGame.POINTS_FOR_LAST_TRICK);
+                        .append(SCORE_CHANGE_EQUALS).append(currentScore + PokerGame.POINTS_FOR_LAST_TRICK);
             }
-            scoreString.append(NEWLINE);
-
-        });
-        pointsTextPane.setText(scoreString.toString());
+            pointsLabels.get(i).setText(scoreString.toString());
+        }
     }
 
     private static final String SCORE_CHANGE_EQUALS = " = ";
@@ -129,11 +142,9 @@ public class PokerGUI extends javax.swing.JFrame {
     public void updateScoreboard() {
         var players = game.getPlayers();
         var scoreboard = game.getScoreBoard();
-        StringBuilder scoreString = new StringBuilder();
-        players.forEach(player -> {
-            scoreString.append(scoreboard.getScoreOfPlayer(player)).append(NEWLINE);
-        });
-        pointsTextPane.setText(scoreString.toString());
+        for (int i = 0; i < players.size(); i++) {
+            pointsLabels.get(i).setText(String.valueOf(scoreboard.getScoreOfPlayer(players.get(i))));
+        }
     }
 
     public void showNextRoundButton() {
@@ -146,6 +157,48 @@ public class PokerGUI extends javax.swing.JFrame {
         playButtonList.forEach(button -> {
             button.setVisible(false);
         });
+    }
+
+    public static void changeFont(Component component, Font font) {
+        component.setFont(font);
+        if (component instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                changeFont(child, font);
+            }
+        }
+    }
+
+    public void updateFont() {
+        changeFont(getContentPane(), new Font(fontName, fontStyle, fontSize));
+        /*
+        confirmThrow.getFont().deriveFont((float) size);
+        difficultyLabel.getFont().deriveFont((float) size);
+        jMenu1.getFont().deriveFont((float) size);
+        jMenuBar1.getFont().deriveFont((float) size);
+        jMenuBar1.getFont().deriveFont((float) size);
+        for (var label : nameLabels) {
+            label.getFont().deriveFont((float) size);
+        }
+        newGameChangeSettings.getFont().deriveFont((float) size);
+        newGameSameSettings.getFont().deriveFont((float) size);
+        nextRoundButton.getFont().deriveFont((float) size);
+        opponentCountLabel.getFont().deriveFont((float) size);
+        for (var array : playedCardsLabels) {
+            for (var label : array) {
+                label.getFont().deriveFont((float) size);
+            }
+        }
+        for (var label : pointsLabels) {
+            label.getFont().deriveFont((float) size);
+        }
+        for (var x : playButtonList) {
+            x.getFont().deriveFont((float) size);
+        }
+        for (var x : throwCheckBoxList) {
+            x.getFont().deriveFont((float) size);
+        }
+        startGameButton.getFont().deriveFont((float) size);
+         */
     }
 
     private static final String PLAY_AGAIN_TEXT = "Nochmal mit diesen Einstellungen spielen";
@@ -170,12 +223,10 @@ public class PokerGUI extends javax.swing.JFrame {
         difficultySlider = new javax.swing.JSlider();
         startGameButton = new javax.swing.JButton();
         gamePanel = new javax.swing.JPanel();
-        nameScrollPane = new javax.swing.JScrollPane();
-        nameTextPane = new javax.swing.JTextPane();
-        playedCardsScrollPane = new javax.swing.JScrollPane();
-        playedCardsTextPane = new javax.swing.JTextPane();
-        pointsScrollPane = new javax.swing.JScrollPane();
-        pointsTextPane = new javax.swing.JTextPane();
+        leftPanel = new javax.swing.JPanel();
+        namePanel = new javax.swing.JPanel();
+        middlePanel = new javax.swing.JPanel();
+        playedCardsPanelContainer = new javax.swing.JPanel();
         throwAndPlayPane = new javax.swing.JLayeredPane();
         playPanel = new javax.swing.JPanel();
         playOptionsPanel = new javax.swing.JPanel();
@@ -193,13 +244,22 @@ public class PokerGUI extends javax.swing.JFrame {
         throwOptionFour = new javax.swing.JCheckBox();
         throwOptionFive = new javax.swing.JCheckBox();
         confirmThrow = new javax.swing.JButton();
+        rightPanel = new javax.swing.JPanel();
+        pointsPanel = new javax.swing.JPanel();
+        fontSizePanel = new javax.swing.JPanel();
+        fontSizeCancel = new javax.swing.JButton();
+        fontSizeSlider = new javax.swing.JSlider();
+        fontSizeLabel = new javax.swing.JLabel();
+        fontSizeSave = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         newGameSameSettings = new javax.swing.JMenuItem();
         newGameChangeSettings = new javax.swing.JMenuItem();
+        fontSettings = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Poker med fem kort");
+        setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
 
         gameAndOptionsPane.setLayout(new java.awt.CardLayout());
 
@@ -253,30 +313,19 @@ public class PokerGUI extends javax.swing.JFrame {
 
         gameAndOptionsPane.add(optionPanel, "card3");
 
-        nameTextPane.setEditable(false);
-        nameTextPane.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Spieler",
-            javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION,
-            new java.awt.Font("Tahoma", 0, 14))); // NOI18N
-        nameTextPane.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        nameTextPane.setText("Gu\nAl\nEr\nAn\nLi");
-        nameTextPane.setFocusable(false);
-        nameScrollPane.setViewportView(nameTextPane);
+        gamePanel.setLayout(new java.awt.GridLayout(1, 0));
 
-        playedCardsTextPane.setEditable(false);
-        playedCardsTextPane.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Ausgespielte Karten",
-            javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION,
-            new java.awt.Font("Tahoma", 0, 14))); // NOI18N
-        playedCardsTextPane.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        playedCardsTextPane.setFocusable(false);
-        playedCardsScrollPane.setViewportView(playedCardsTextPane);
+        leftPanel.setLayout(new java.awt.GridLayout(2, 1));
 
-        pointsTextPane.setEditable(false);
-        pointsTextPane.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Punkte",
-            javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION,
-            new java.awt.Font("Tahoma", 0, 14))); // NOI18N
-        pointsTextPane.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        pointsTextPane.setFocusable(false);
-        pointsScrollPane.setViewportView(pointsTextPane);
+        namePanel.setLayout(new java.awt.GridLayout(5, 1));
+        leftPanel.add(namePanel);
+
+        gamePanel.add(leftPanel);
+
+        middlePanel.setLayout(new java.awt.GridLayout(2, 1));
+
+        playedCardsPanelContainer.setLayout(new java.awt.GridLayout(5, 5));
+        middlePanel.add(playedCardsPanelContainer);
 
         throwAndPlayPane.setPreferredSize(new java.awt.Dimension(542, 75));
         throwAndPlayPane.setLayout(new java.awt.CardLayout());
@@ -431,39 +480,53 @@ public class PokerGUI extends javax.swing.JFrame {
 
         throwAndPlayPane.add(throwPanel, "card3");
 
-        javax.swing.GroupLayout gamePanelLayout = new javax.swing.GroupLayout(gamePanel);
-        gamePanel.setLayout(gamePanelLayout);
-        gamePanelLayout.setHorizontalGroup(
-            gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(gamePanelLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(nameScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 107,
-                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(throwAndPlayPane, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
-                        .addComponent(playedCardsScrollPane))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(pointsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 242,
-                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(30, Short.MAX_VALUE))
-        );
-        gamePanelLayout.setVerticalGroup(
-            gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(gamePanelLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(nameScrollPane, javax.swing.GroupLayout.Alignment.TRAILING,
-                            javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
-                        .addComponent(playedCardsScrollPane, javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(pointsScrollPane))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(throwAndPlayPane, javax.swing.GroupLayout.PREFERRED_SIZE, 177,
-                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(21, Short.MAX_VALUE))
-        );
+        middlePanel.add(throwAndPlayPane);
+
+        gamePanel.add(middlePanel);
+
+        rightPanel.setLayout(new java.awt.GridLayout(2, 1));
+
+        pointsPanel.setLayout(new java.awt.GridLayout(5, 1));
+        rightPanel.add(pointsPanel);
+
+        gamePanel.add(rightPanel);
 
         gameAndOptionsPane.add(gamePanel, "card2");
+
+        fontSizePanel.setFocusable(false);
+
+        fontSizeCancel.setFont(new java.awt.Font("Tahoma", 0, 50)); // NOI18N
+        fontSizeCancel.setText("Abbrechen");
+        fontSizeCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fontSizeCancelActionPerformed(evt);
+            }
+        });
+        fontSizePanel.add(fontSizeCancel);
+
+        fontSizeSlider.setMaximum(60);
+        fontSizeSlider.setMinimum(12);
+        fontSizeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                fontSizeSliderStateChanged(evt);
+            }
+        });
+        fontSizePanel.add(fontSizeSlider);
+
+        fontSizeLabel.setFont(new java.awt.Font("Tahoma", 0, 50)); // NOI18N
+        fontSizeLabel.setText("Schriftgröße");
+        fontSizePanel.add(fontSizeLabel);
+
+        fontSizeSave.setFont(new java.awt.Font("Tahoma", 0, 50)); // NOI18N
+        fontSizeSave.setText("Speichern");
+        fontSizeSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fontSizeSaveActionPerformed(evt);
+            }
+        });
+        fontSizePanel.add(fontSizeSave);
+
+        gameAndOptionsPane.add(fontSizePanel, "card4");
 
         jMenu1.setText("Neues Spiel");
 
@@ -485,17 +548,25 @@ public class PokerGUI extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu1);
 
+        fontSettings.setText("Schriftgröße");
+        fontSettings.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fontSettingsMouseClicked(evt);
+            }
+        });
+        jMenuBar1.add(fontSettings);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(gameAndOptionsPane)
+            .addComponent(gameAndOptionsPane, javax.swing.GroupLayout.DEFAULT_SIZE, 1252, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(gameAndOptionsPane)
+            .addComponent(gameAndOptionsPane, javax.swing.GroupLayout.DEFAULT_SIZE, 691, Short.MAX_VALUE)
         );
 
         pack();
@@ -507,10 +578,69 @@ public class PokerGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_newGameSameSettingsActionPerformed
 
     private void startGame() {
-        gamePanel.setVisible(true);
-        optionPanel.setVisible(false);
+        switchToGamePanel();
         initButtonLists();
+        initLabels();
+        updateFont();
         game.startGame();
+    }
+
+    private void switchToGamePanel() {
+        gamePanel.setVisible(true);
+        inGamePanel = true;
+        optionPanel.setVisible(false);
+    }
+
+    private void initLabels() {
+        initNameLabels();
+        initPlayedCardsLabels();
+        initPointsLabels();
+    }
+
+    private void initNameLabels() {
+        namePanel.removeAll();
+        nameLabels.clear();
+        var playerCount = game.getPlayerCount();
+        namePanel.setLayout(new GridLayout(playerCount, 1));
+        for (int i = 0; i < playerCount; i++) {
+            var name = new JLabel();
+            name.setHorizontalAlignment(SwingConstants.RIGHT);
+            namePanel.add(name);
+            nameLabels.add(name);
+        }
+    }
+
+    private void initPointsLabels() {
+        pointsPanel.removeAll();
+        pointsLabels.clear();
+        var playerCount = game.getPlayerCount();
+        pointsPanel.setLayout(new GridLayout(playerCount, 1));
+        for (int i = 0; i < playerCount; i++) {
+            var points = new JLabel();
+            pointsPanel.add(points);
+            pointsLabels.add(points);
+        }
+    }
+
+    private void initPlayedCardsLabels() {
+        playedCardsPanelContainer.removeAll();
+        playedCardsPanels.clear();
+        playedCardsLabels.clear();
+        var playerCount = game.getPlayerCount();
+        playedCardsPanelContainer.setLayout(new GridLayout(playerCount, 1));
+        for (int i = 0; i < playerCount; i++) {
+            var panel = new JPanel();
+            panel.setLayout(new GridLayout(1, PokerGame.CARD_HAND_SIZE));
+            playedCardsPanelContainer.add(panel);
+            playedCardsPanels.add(panel);
+            playedCardsLabels.add(new JLabel[PokerGame.CARD_HAND_SIZE]);
+            for (int j = 0; j < PokerGame.CARD_HAND_SIZE; j++) {
+                var label = new JLabel();
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                playedCardsLabels.get(i)[j] = label;
+                playedCardsPanels.get(i).add(label);
+            }
+        }
     }
 
     private void opponentCountSliderStateChanged(
@@ -550,9 +680,14 @@ public class PokerGUI extends javax.swing.JFrame {
 
     private void newGameChangeSettingsActionPerformed(
         java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newGameChangeSettingsActionPerformed
-        gamePanel.setVisible(false);
-        optionPanel.setVisible(true);
+        switchToOptionPanel();
     }//GEN-LAST:event_newGameChangeSettingsActionPerformed
+
+    private void switchToOptionPanel() {
+        gamePanel.setVisible(false);
+        inGamePanel = false;
+        optionPanel.setVisible(true);
+    }
 
     private void confirmThrowActionPerformed(
         java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmThrowActionPerformed
@@ -597,6 +732,45 @@ public class PokerGUI extends javax.swing.JFrame {
         game.receivePlayInput(4);
     }//GEN-LAST:event_playOptionFiveActionPerformed
 
+    private void fontSizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_fontSizeSliderStateChanged
+        updateFontSizeLabel();
+    }//GEN-LAST:event_fontSizeSliderStateChanged
+
+    private void updateFontSizeLabel() {
+        var value = fontSizeSlider.getValue();
+        fontSizeLabel.setText("Schriftgröße " + value);
+        fontSizeLabel.setFont(fontSizeLabel.getFont().deriveFont((float) value));
+    }
+
+    private void fontSizeCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fontSizeCancelActionPerformed
+        closeFontSettings();
+    }//GEN-LAST:event_fontSizeCancelActionPerformed
+
+    private void closeFontSettings() {
+        fontSizePanel.setVisible(false);
+        if (inGamePanel) {
+            gamePanel.setVisible(true);
+        } else {
+            optionPanel.setVisible(true);
+        }
+    }
+
+    private void fontSizeSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fontSizeSaveActionPerformed
+         fontSize = fontSizeSlider.getValue();
+        updateFont();
+        closeFontSettings();
+    }//GEN-LAST:event_fontSizeSaveActionPerformed
+
+    private void fontSettingsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fontSettingsMouseClicked
+       fontSizePanel.setVisible(true);
+        if (inGamePanel) {
+            gamePanel.setVisible(false);
+        } else {
+            optionPanel.setVisible(false);
+        }
+        updateFontSizeLabel();
+    }//GEN-LAST:event_fontSettingsMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -631,7 +805,6 @@ public class PokerGUI extends javax.swing.JFrame {
             }
         });
 
-
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -639,12 +812,19 @@ public class PokerGUI extends javax.swing.JFrame {
     private javax.swing.JLabel difficultyLabel;
     private javax.swing.JPanel difficultyPanel;
     private javax.swing.JSlider difficultySlider;
+    private javax.swing.JMenu fontSettings;
+    private javax.swing.JButton fontSizeCancel;
+    private javax.swing.JLabel fontSizeLabel;
+    private javax.swing.JPanel fontSizePanel;
+    private javax.swing.JButton fontSizeSave;
+    private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JLayeredPane gameAndOptionsPane;
     private javax.swing.JPanel gamePanel;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JScrollPane nameScrollPane;
-    private javax.swing.JTextPane nameTextPane;
+    private javax.swing.JPanel leftPanel;
+    private javax.swing.JPanel middlePanel;
+    private javax.swing.JPanel namePanel;
     private javax.swing.JMenuItem newGameChangeSettings;
     private javax.swing.JMenuItem newGameSameSettings;
     private javax.swing.JButton nextRoundButton;
@@ -659,10 +839,9 @@ public class PokerGUI extends javax.swing.JFrame {
     private javax.swing.JButton playOptionTwo;
     private javax.swing.JPanel playOptionsPanel;
     private javax.swing.JPanel playPanel;
-    private javax.swing.JScrollPane playedCardsScrollPane;
-    private javax.swing.JTextPane playedCardsTextPane;
-    private javax.swing.JScrollPane pointsScrollPane;
-    private javax.swing.JTextPane pointsTextPane;
+    private javax.swing.JPanel playedCardsPanelContainer;
+    private javax.swing.JPanel pointsPanel;
+    private javax.swing.JPanel rightPanel;
     private javax.swing.JButton startGameButton;
     private javax.swing.JLayeredPane throwAndPlayPane;
     private javax.swing.JCheckBox throwOptionFive;
@@ -676,4 +855,10 @@ public class PokerGUI extends javax.swing.JFrame {
 
     private List<JButton> playButtonList;
     private List<JCheckBox> throwCheckBoxList;
+    private final List<JLabel> nameLabels = new LinkedList<>();
+    private final List<JPanel> playedCardsPanels = new LinkedList<>();
+    private final List<JLabel[]> playedCardsLabels = new LinkedList<>();
+    private final List<JLabel> pointsLabels = new LinkedList<>();
+    private boolean inGamePanel = false;
+
 }

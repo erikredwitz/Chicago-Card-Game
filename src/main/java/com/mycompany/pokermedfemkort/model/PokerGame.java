@@ -325,7 +325,7 @@ public final class PokerGame {
     }
     
     public int getPlayerCount() {
-        return players.size();
+        return settings.getOpponentCount() + 1;
     }
     
     public ScoreBoard getScoreBoard() {
