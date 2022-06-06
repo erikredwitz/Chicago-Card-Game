@@ -1,0 +1,4 @@
+GUI-Flächen am Ende größer (soll so nicht sein)
+Anzeige der gespielten Karten aus vielen kleinen Stücken (text labels) statt großem Textfeld
+Karten der Farben Karo und Herz in Rot
+skalierbare Flächen
