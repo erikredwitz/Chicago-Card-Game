@@ -9,6 +9,10 @@ public class SwapPhase extends PokerPhase {
         super(orderedPlayers, game);
     }
 
+    public SwapPhase(int firstPlayer, PokerGame game) {
+        super(firstPlayer, game);
+    }
+
     @Override
     public boolean continuePhase() {
         return game.swap(orderedPlayers, playerInTurn);
@@ -16,5 +20,10 @@ public class SwapPhase extends PokerPhase {
 
     public PokerPhase getNextPhase() {
         return new TrickPhase(orderedPlayers, game);
+    }
+
+    @Override
+    public PokerPhase getSamePhase(int firstPlayer, PokerGame game) {
+        return new SwapPhase(firstPlayer, game);
     }
 }

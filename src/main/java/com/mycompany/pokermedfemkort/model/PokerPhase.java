@@ -43,4 +43,17 @@ public abstract class PokerPhase {
             orderedPlayers.add(orderedPlayers.remove(0));
         }
     }
+
+     public abstract PokerPhase getSamePhase(int firstPlayer, PokerGame game);
+
+    public static int getPlayerIndex(PokerPlayer player, List<PokerPlayer> list){
+        int i = -1;
+        for (int j = 0; j < list.size(); j++) {
+            PokerPlayer x = list.get(j);
+            if (x == player) {
+                i = j;
+            }
+        }
+        return i;
+    }
 }

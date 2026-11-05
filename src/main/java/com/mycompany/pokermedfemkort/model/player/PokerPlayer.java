@@ -2,8 +2,10 @@ package com.mycompany.pokermedfemkort.model.player;
 
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.mycompany.pokermedfemkort.model.Card;
 import com.mycompany.pokermedfemkort.model.PlayStrategy;
@@ -89,7 +91,7 @@ public abstract class PokerPlayer {
 
     public void acceptCard(Card card) {
         hand.add(card);
-        Collections.sort(hand);
+        hand.sort(Collections.reverseOrder());
     }
 
     public List<Card> getPlayedCards() {
@@ -97,6 +99,10 @@ public abstract class PokerPlayer {
     }
 
     public Card getLastPlayedCard(){
+        if(playedCards.isEmpty()){
+            System.out.println("playedCards is empty");
+            return null;
+        }
         return playedCards.get(playedCards.size() - 1);
     }
 
@@ -130,6 +136,18 @@ public abstract class PokerPlayer {
     }
 
     public List<Card> chooseCardsToSwap() {
-        return swapStrategy.chooseCardsToSwap(hand);
+        return swapStrategy.chooseCardsToSwap(hand, game.getPlayerCount(), game.getPosition(this));
+    }
+
+    public void setHand(List<Card> hand){
+        this.hand.clear();
+        this.hand.addAll(hand);
+    }
+
+    public boolean isPredefined() {
+        if (this instanceof PokerBot bot){
+            return bot.isPlayPredefined;
+        }
+        else return false;
     }
 }

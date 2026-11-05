@@ -14,7 +14,7 @@ public class BotSwapStrategy implements SwapStrategy {
 
     //Karten von fertigen Kombinationen behalten: Werte von 1 bis 13
     private final int keepCombinationsFromWorth = 2;
-    private final int keepCardsFromValue = 10;
+    private final int keepCardsFromValue = 11;
     //zum Beispiel bei Karo König, auch Karo 9 behalten, wenn keepCardsFromValue = 10 ist.
     //Werte von 2 bis 15, und 15 heißt: Taktik wird nicht verwendet
     private final int keepSuitFromValue = 13;
@@ -26,7 +26,7 @@ public class BotSwapStrategy implements SwapStrategy {
 
 
     @Override
-    public List<Card> chooseCardsToSwap(List<Card> hand) {
+    public List<Card> chooseCardsToSwap(List<Card> hand, int playerCount, int position) {
         HashSet<Card> keep = new HashSet<>();
         var pokerHand = PokerHand.findCombination(hand);
         if (pokerHand.getCombination().getPoints() >= keepCombinationsFromWorth) {

@@ -33,8 +33,21 @@ public class Deck {
         }
     }
 
+    public Deck(List<Card> cards){
+        this.cards.addAll(cards);
+    }
+
     public List<Card> getCards() {
         return cards;
+    }
+
+    public void setCards(List<Card> cards){
+        this.cards.clear();
+        this.cards.addAll(cards);
+    }
+
+    public Deck getCopy(){
+        return new Deck(cards);
     }
 
     public void shuffle() {

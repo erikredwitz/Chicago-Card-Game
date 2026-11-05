@@ -9,7 +9,7 @@ public class InputSwapStrategy implements SwapStrategy {
 
 
     @Override
-    public List<Card> chooseCardsToSwap(List<Card> hand) {
+    public List<Card> chooseCardsToSwap(List<Card> hand, int playerCount, int position) {
         List<Card> cardsToSwap = new LinkedList<>();
         for (int i = 0; i < PokerGame.CARD_HAND_SIZE; i++) {
             if (swapDecision[i]) {

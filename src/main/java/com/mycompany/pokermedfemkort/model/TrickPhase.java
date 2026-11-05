@@ -9,6 +9,10 @@ public class TrickPhase extends PokerPhase {
         super(orderedPlayers, game);
     }
 
+    public TrickPhase(int firstPlayer, PokerGame game) {
+        super(firstPlayer, game);
+    }
+
     @Override
     public boolean continuePhase() {
         return game.playRound(orderedPlayers, playerInTurn);
@@ -19,5 +23,10 @@ public class TrickPhase extends PokerPhase {
         game.prepareNextRound();
         orderedPlayers.add(orderedPlayers.remove(0));//let next player begin
         return new DealPhase(orderedPlayers, game);
+    }
+
+    @Override
+    public PokerPhase getSamePhase(int firstPlayer, PokerGame game) {
+        return new TrickPhase(firstPlayer, game);
     }
 }

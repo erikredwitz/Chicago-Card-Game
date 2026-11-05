@@ -11,8 +11,8 @@ import java.util.Random;
 import com.mycompany.pokermedfemkort.model.player.PokerBot;
 import com.mycompany.pokermedfemkort.model.player.PokerUser;
 
-public final class PokerGame {
-    
+public class PokerGame {
+
     public static final int DECK_SIZE = 52;
     public static final int CARD_HAND_SIZE = 5;
     public static final String BOT_NAME = "Bot";
@@ -26,9 +26,9 @@ public final class PokerGame {
     private final List<PokerPlayer> players = new LinkedList<>();
     private ScoreBoard scoreboard;
     private final List<Card> huddle = new LinkedList<>();
-    private final PokerGUI gui;
+    protected final PokerGUI gui;
     private PokerPhase phase;
-    
+
     private boolean inputValid;
     private PokerPlayer lastTrickWinner;
     private boolean endOfRound;
@@ -47,11 +47,11 @@ public final class PokerGame {
     public void setOpponentCount(int sliderValue) {
         settings.setOpponentCount(sliderValue);
     }
-    
+
     public void setDifficulty(int sliderValue) {
         settings.setDifficulty(sliderValue);
     }
-    
+
     public void deal(List<PokerPlayer> orderedPlayers) {
         deck.shuffle();
         for (int i = 0; i < CARD_HAND_SIZE; i++) {
@@ -60,7 +60,7 @@ public final class PokerGame {
             }
         }
     }
-    
+
     public boolean swap(List<PokerPlayer> orderedPlayers, int playerInTurn) {
         gui.updatePlayedCards();
         gui.updateScoreboard();
@@ -100,7 +100,7 @@ public final class PokerGame {
         }
         return true;
     }
-    
+
     public boolean playRound(List<PokerPlayer> orderedPlayers, int playerInTurn) {
         PokerPlayer trickWinningPlayer = orderedPlayers.get(0);
         while (orderedPlayers.get(playerInTurn).getHandSize() > 0) {
@@ -148,7 +148,7 @@ public final class PokerGame {
                     highest = playedCard.getValue();
                 } else if (playedCard.getSuit() == led && playedCard.getValue() > highest) {
                     highest = playedCard.getValue();
-                }                
+                }
             }
             trickWinningPlayer = getPlayerWhoLastPlayed(led, highest);
             if (orderedPlayers.get(0).getHandSize() > 0) {
@@ -164,8 +164,8 @@ public final class PokerGame {
         return true;
     }
 
-    private void printHand(PokerPlayer firstPlayer) {
-        for(var card : firstPlayer.getHand()){
+    public void printHand(PokerPlayer firstPlayer) {
+        for (var card : firstPlayer.getHand()) {
             System.out.print(card.getRepresentation() + " ");
         }
         System.out.print("\n");
@@ -174,6 +174,9 @@ public final class PokerGame {
     private Card getLeading(List<PokerPlayer> orderedPlayers) {
         List<PokerPlayer> playersWhoHavePlayed = new LinkedList<>();
         int maxPlayed = orderedPlayers.get(0).getPlayedCards().size();
+        if (maxPlayed == 0) {
+            return null;
+        }
         for (PokerPlayer player : orderedPlayers) {
             int played = player.getPlayedCards().size();
             if (played == maxPlayed) {
@@ -192,8 +195,8 @@ public final class PokerGame {
         }
         return leading;
     }
-    
-    private void printPlayedCards() {
+
+    public void printPlayedCards() {
         for (var player : players) {
             var playedCards = player.getPlayedCards();
             System.out.print(player.getName() + ":\t");
@@ -212,7 +215,7 @@ public final class PokerGame {
         }
         return enabled;
     }
-    
+
     private PokerPlayer getPlayerWhoLastPlayed(Suit led, int highestValue) {
         for (PokerPlayer player : players) {
             Card lastPlayed = player.getLastPlayedCard();
@@ -222,7 +225,7 @@ public final class PokerGame {
         }
         return null;
     }
-    
+
     public void receiveSwapInput(boolean[] swapArray) {
         var user = players.get(players.size() - 1);
         if (user.isUser()) {
@@ -237,7 +240,7 @@ public final class PokerGame {
         inputValid = true;
         continueGame();
     }
-    
+
     public void receivePlayInput(int playDecision) {
         var user = players.get(players.size() - 1);
         if (user.isUser()) {
@@ -252,7 +255,7 @@ public final class PokerGame {
         inputValid = true;
         continueGame();
     }
-    
+
     public void startGame() {
         prepareGame();
         continueGame();
@@ -262,10 +265,12 @@ public final class PokerGame {
         players.clear();
         //create opponents with strategies "PlayScript", "SwapScript"
         for (int i = 0;
-                i < settings.getOpponentCount(); i++) {
+             i < settings.getOpponentCount(); i++) {
             //hier kann man später dem Konstruktor der Strategien den Schwierigkeitsgrad übergeben
             players.add(
-                    new PokerBot(this, BOT_NAME + (i + 1)));
+                new PokerBot(this, BOT_NAME + (i + 1),
+                    new RandomSamplingSwapStrategy(settings.getDifficulty()),
+                    new RandomSamplingPlayStrategy(settings.getDifficulty())));
         }
 
         //create 1 player with strategies "InputPlay", "InputSwap"
@@ -280,7 +285,15 @@ public final class PokerGame {
         deck = new Deck();
         phase = new DealPhase(RANDOM.nextInt(players.size()), this);
     }
-    
+
+    public void clearHuddle() {
+        huddle.clear();
+    }
+
+    public void setPhase(PokerPhase phase) {
+        this.phase = phase;
+    }
+
     public void continueGame() {
         endOfRound = false;
         boolean phaseIsFinished;
@@ -291,8 +304,8 @@ public final class PokerGame {
             }
         } while (phaseIsFinished && !endOfRound);
     }
-    
-    private void keepScore() {
+
+    public void keepScore() {
         List<PokerHand> combinationList = new LinkedList<>();
         for (PokerPlayer player : players) {
             PokerHand pokerHand = PokerHand.getPokerHandWithPlayer(player);
@@ -306,7 +319,7 @@ public final class PokerGame {
         scoreboard.increaseScoreOfPlayer(combinationWinner, bestCombination.getCombination().getPoints());
         scoreboard.increaseScoreOfPlayer(lastTrickWinner, POINTS_FOR_LAST_TRICK);
     }
-    
+
     private void collectPlayedCards() {
         for (PokerPlayer player : players) {
             huddle.addAll(player.getPlayedCards());
@@ -315,23 +328,23 @@ public final class PokerGame {
         deck.addAll(huddle);
         huddle.clear();
     }
-    
+
     public List<Card> getHuddle() {
         return huddle;
     }
-    
+
     public List<PokerPlayer> getPlayers() {
         return players;
     }
-    
+
     public int getPlayerCount() {
         return settings.getOpponentCount() + 1;
     }
-    
+
     public ScoreBoard getScoreBoard() {
         return scoreboard;
     }
-    
+
     public static List<Integer> getPlayable(List<Card> hand, Suit led, int value) {
         List<Integer> cardsInSuit = new LinkedList<>();
         for (int i = 0; i < hand.size(); i++) {
@@ -353,24 +366,52 @@ public final class PokerGame {
         }
         return higher;
     }
-    
-    private static List<Integer> listFromZeroTo(int length) {
+
+    public static List<Integer> listFromZeroTo(int length) {
         List<Integer> numbers = new LinkedList<>();
         for (int i = 0; i < length; i++) {
             numbers.add(i);
         }
         return numbers;
     }
-    
+
     public boolean hasEnded() {
         return scoreboard.getHighestScore() >= SCORE_FOR_WINNING;
     }
-    
+
     public void prepareNextRound() {
         keepScore();
         gui.showNextRoundButton();
         gui.updatePlayedCards();
         collectPlayedCards();
 
+    }
+
+    public int getPosition(PokerPlayer pokerPlayer) {
+        int i = 0;
+        for (PokerPlayer x : phase.orderedPlayers) {
+            if (pokerPlayer == x) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public PokerPhase getPhase() {
+        return phase;
+    }
+
+
+    public void setScoreboard(ScoreBoard scoreboard) {
+        this.scoreboard = scoreboard;
     }
 }

@@ -24,4 +24,9 @@ public class DealPhase extends PokerPhase {
     public PokerPhase getNextPhase() {
         return new SwapPhase(orderedPlayers, game);
     }
+
+    @Override
+    public PokerPhase getSamePhase(int firstPlayer, PokerGame game) {
+        return new DealPhase(firstPlayer, game);
+    }
 }
