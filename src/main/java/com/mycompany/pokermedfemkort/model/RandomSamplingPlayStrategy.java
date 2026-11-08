@@ -33,6 +33,7 @@ public class RandomSamplingPlayStrategy extends PlayStrategy {
             } else {
                 playable = PokerGame.getPlayable(hand, led, value);
             }
+            //todo bei allen restlichen Entscheidungen der Runde (bis 2 Karten auf der Hand) alle Möglichkeiten probieren und die Punkte summieren und dann die Karte der besten ersten Entscheidung zurückgeben
             for (int playDecision = 0; playDecision < hand.size(); playDecision++) {
                 if (playable.contains(playDecision)) {
                     var shuffledDeckCopy = shuffledDeck.getCopy();

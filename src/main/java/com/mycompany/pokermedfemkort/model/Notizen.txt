@@ -1,0 +1,12 @@
+sampling play strategy sollte auch bei der Sampling swap Strategy verwendet werden in der Simulation des Spiels
+Das Problem ist aber dass man aufpassen muss, dass es nicht zu viele Schritte werden
+also zum Beispiel nicht 1024 Schritte für jede der 32 Swap-Möglichkeiten machen und da dann nochmal 1024 mal 1024 mal 1024 mal 1024 in jeder Entscheidung wenn man eine Karte legt (also bei den ersten 4 Karten)
+es so machen, dass es pro Tauschmöglichkeit insgesamt 1024 Schritte sind oder so
+also fünfte Wurzel aus 1024 Spiele berechnen
+und dann diese Zahl als Grenze verwenden für die Anzahl Schritte in jeder Entscheidungsmöglichkeit
+also beim Schmeißen (32)
+beim Spielen der ersten Karte (5)
+beim Spielen der zweiten Karte (4)
+usw.
+bis zum Spielen der vierten Karte (2)
+man hat eigentlich nicht immer so viele Möglichkeiten beim Spielen der Karten aber unzulässige Entscheidungen werden ja abgefangen, aber man kann sie sich dementsprechend auch schon vorher sparen aus Effizienzgründen, aber es würde trotzdem funktionieren.
